@@ -9,36 +9,58 @@ Promise.promisifyAll(im);
 var GENERATED_DIR = path.join(__dirname, 'img');
 var SOURCE_DIR = path.join(__dirname, 'img', 'src');
 
+function generateImage(width, height, generatedPath, next) {
+    fs.readdir(SOURCE_DIR, function(err, files) {
+        if (err) return res.status(400);
+
+        files = _.filter(files, function(o) {
+            return o.endsWith('.jpg');
+        });
+
+        var file = _.sample(files);
+        var sourcePath = path.resolve(SOURCE_DIR, file);
+        var options = {
+            srcPath: sourcePath,
+            dstPath: generatedPath,
+            quality: 85,
+            format: 'jpg',
+            sharpening: 0.5
+        };
+
+        if (width > height) {
+            options.width = width;
+        } else {
+            options.height = height;
+        }
+
+        im.resize(options, function(err, stdout, stderr) {
+            if (err) throw err;
+
+            im.crop({
+                srcPath: generatedPath,
+                dstPath: generatedPath,
+                width: width,
+                height: height
+            }, function(err, stdout, stderr){
+                if (err) throw err;
+
+                next();
+            });
+        });
+    });
+}
+
 module.exports = function (app) {
     app.get('/:width', function(req, res) {
-        var filename = req.params.width + "x" + req.params.width + ".jpg";
+        var width = req.params.width;
+        var filename = width + "x" + width + ".jpg";
         var generatedPath = path.resolve(GENERATED_DIR, filename);
 
         if (fs.existsSync(generatedPath)) {
             res.sendFile(generatedPath);
         } else {
-            fs.readdir(SOURCE_DIR, function(err, files) {
-                if (err) return res.status(400);
-
-                var file = _.sample(files);
-                var sourcePath = path.resolve(SOURCE_DIR, file);
-                im.resize({
-                    srcPath: sourcePath,
-                    dstPath: generatedPath,
-                    width:   req.params.width,
-                    height:   req.params.width
-                }, function(err, stdout, stderr){
-                    if (err) throw err;
-
-                    im.identify(generatedPath, function(err, features){
-                        if (err) throw err;
-                        console.log(features);
-                    });
-
-                    res.sendFile(generatedPath);
-                });
-
-
+            generateImage(width, width, generatedPath, function() {
+                res.sendFile(generatedPath);
             });
         }
     });
@@ -52,40 +74,8 @@ module.exports = function (app) {
         if (fs.existsSync(generatedPath)) {
             res.sendFile(generatedPath);
         } else {
-            fs.readdir(SOURCE_DIR, function(err, files) {
-                if (err) return res.status(400);
-
-                files = _.filter(files, function(o) {
-                    return o.endsWith('.jpg');
-                });
-
-                var file = _.sample(files);
-                var sourcePath = path.resolve(SOURCE_DIR, file);
-                var options = {
-                    srcPath: sourcePath,
-                    dstPath: generatedPath
-                };
-
-                if (width > height) {
-                    options.width = width;
-                } else {
-                    options.height = height;
-                }
-
-                im.resize(options, function(err, stdout, stderr) {
-                    if (err) throw err;
-
-                    im.crop({
-                        srcPath: generatedPath,
-                        dstPath: generatedPath,
-                        width: width,
-                        height: height
-                    }, function(err, stdout, stderr){
-                        if (err) throw err;
-
-                        res.sendFile(generatedPath);
-                    });
-                });
+            generateImage(width, height, generatedPath, function() {
+                res.sendFile(generatedPath);
             });
         }
     });
