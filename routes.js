@@ -52,32 +52,51 @@ function generateImage(width, height, generatedPath, next) {
 
 module.exports = function (app) {
     app.get('/:width', function(req, res) {
-        var width = req.params.width;
-        var filename = width + "x" + width + ".jpg";
-        var generatedPath = path.resolve(GENERATED_DIR, filename);
+        req.checkParams('width', 'Must be an integer').notEmpty().isInt();
 
-        if (fs.existsSync(generatedPath)) {
-            res.sendFile(generatedPath);
-        } else {
-            generateImage(width, width, generatedPath, function() {
+        req.getValidationResult().then(function(result) {
+            if (!result.isEmpty()) {
+                res.status(400).send(result.array());
+                return;
+            }
+
+            var width = req.params.width;
+            var filename = width + "x" + width + ".jpg";
+            var generatedPath = path.resolve(GENERATED_DIR, filename);
+
+            if (fs.existsSync(generatedPath)) {
                 res.sendFile(generatedPath);
-            });
-        }
+            } else {
+                generateImage(width, width, generatedPath, function() {
+                    res.sendFile(generatedPath);
+                });
+            }
+        });
     });
 
     app.get('/:width/:height', function(req, res) {
-        var width = req.params.width;
-        var height = req.params.height;
-        var filename = width + "x" + height + ".jpg";
-        var generatedPath = path.resolve(GENERATED_DIR, filename);
+        req.checkParams('width', 'Must be an integer').notEmpty().isInt();
+        req.checkParams('height', 'Must be an integer').notEmpty().isInt();
 
-        if (fs.existsSync(generatedPath)) {
-            res.sendFile(generatedPath);
-        } else {
-            generateImage(width, height, generatedPath, function() {
+        req.getValidationResult().then(function(result) {
+            if (!result.isEmpty()) {
+                res.status(400).send(result.array());
+                return;
+            }
+
+            var width = req.params.width;
+            var height = req.params.height;
+            var filename = width + "x" + height + ".jpg";
+            var generatedPath = path.resolve(GENERATED_DIR, filename);
+
+            if (fs.existsSync(generatedPath)) {
                 res.sendFile(generatedPath);
-            });
-        }
+            } else {
+                generateImage(width, height, generatedPath, function () {
+                    res.sendFile(generatedPath);
+                });
+            }
+        });
     });
 
     app.get('/', function(req, res) {
