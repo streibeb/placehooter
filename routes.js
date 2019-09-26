@@ -52,7 +52,7 @@ function generateImage(width, height, generatedPath, next) {
 
 module.exports = function (app) {
     app.get('/:width', function(req, res) {
-        req.checkParams('width', 'Must be an integer less than 5000').notEmpty().isInt().lte(5000);
+        req.checkParams('width', 'Must be an integer less than 2000').notEmpty().isInt().lte(2000);
 
         req.getValidationResult().then(function(result) {
             if (!result.isEmpty()) {
@@ -75,8 +75,8 @@ module.exports = function (app) {
     });
 
     app.get('/:width/:height', function(req, res) {
-        req.checkParams('width', 'Must be an integer less than 5000').notEmpty().isInt().lte(5000);
-        req.checkParams('height', 'Must be an integer less than 5000').notEmpty().isInt().lte(5000);
+        req.checkParams('width', 'Must be an integer less than 2000').notEmpty().isInt().lte(2000);
+        req.checkParams('height', 'Must be an integer less than 2000').notEmpty().isInt().lte(2000);
 
         req.getValidationResult().then(function(result) {
             if (!result.isEmpty()) {
