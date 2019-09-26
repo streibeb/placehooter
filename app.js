@@ -4,6 +4,7 @@ var path = require('path');
 var express = require('express');
 var bodyParser = require('body-parser');
 var expressValidator = require('express-validator');
+var rateLimit = require('express-rate-limit');
 var app = express();
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -24,6 +25,12 @@ app.use(expressValidator({
        },
     }
    }));
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 50
+  });
+app.use(limiter);
 
 require('./routes')(app);
 
